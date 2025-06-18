@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActionSheetIOS,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -62,6 +63,84 @@ export default function EditSubscriptionScreen() {
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const showCurrencyPicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', 'ARS', 'USD', 'EUR'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex > 0) {
+            const currencies = ['ARS', 'USD', 'EUR'];
+            setFormData((prev) => ({
+              ...prev,
+              currency: currencies[buttonIndex - 1],
+            }));
+          }
+        }
+      );
+    }
+  };
+
+  const showFrequencyPicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', 'Mensual', 'Anual'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex > 0) {
+            const frequencies: ('monthly' | 'annual')[] = ['monthly', 'annual'];
+            setFormData((prev) => ({
+              ...prev,
+              frequency: frequencies[buttonIndex - 1],
+            }));
+          }
+        }
+      );
+    }
+  };
+
+  const showPaymentMethodPicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', ...PAYMENT_METHODS],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex > 0) {
+            setFormData((prev) => ({
+              ...prev,
+              payment_method: PAYMENT_METHODS[buttonIndex - 1],
+            }));
+          }
+        }
+      );
+    }
+  };
+
+  const showCategoryPicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', ...CATEGORIES],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex > 0) {
+            setFormData((prev) => ({
+              ...prev,
+              category: CATEGORIES[buttonIndex - 1],
+            }));
+          }
+        }
+      );
+    }
+  };
 
   useEffect(() => {
     const subscription = subscriptions.find((sub) => sub.id === subscriptionId);
@@ -155,36 +234,58 @@ export default function EditSubscriptionScreen() {
 
             <View style={[styles.inputGroup, styles.flex1, styles.marginLeft]}>
               <Text style={styles.label}>Moneda</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={formData.currency}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, currency: value }))
-                  }
-                  style={styles.picker}
+              {Platform.OS === 'ios' ? (
+                <TouchableOpacity
+                  style={styles.iosPickerButton}
+                  onPress={showCurrencyPicker}
                 >
-                  <Picker.Item label="ARS" value="ARS" />
-                  <Picker.Item label="USD" value="USD" />
-                  <Picker.Item label="EUR" value="EUR" />
-                </Picker>
-              </View>
+                  <Text style={styles.iosPickerText}>{formData.currency}</Text>
+                  <Text style={styles.iosPickerArrow}>▼</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={formData.currency}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, currency: value }))
+                    }
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="ARS" value="ARS" />
+                    <Picker.Item label="USD" value="USD" />
+                    <Picker.Item label="EUR" value="EUR" />
+                  </Picker>
+                </View>
+              )}
             </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Frecuencia</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.frequency}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, frequency: value }))
-                }
-                style={styles.picker}
+            {Platform.OS === 'ios' ? (
+              <TouchableOpacity
+                style={styles.iosPickerButton}
+                onPress={showFrequencyPicker}
               >
-                <Picker.Item label="Mensual" value="monthly" />
-                <Picker.Item label="Anual" value="annual" />
-              </Picker>
-            </View>
+                <Text style={styles.iosPickerText}>
+                  {formData.frequency === 'monthly' ? 'Mensual' : 'Anual'}
+                </Text>
+                <Text style={styles.iosPickerArrow}>▼</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.frequency}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, frequency: value }))
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Mensual" value="monthly" />
+                  <Picker.Item label="Anual" value="annual" />
+                </Picker>
+              </View>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -211,42 +312,66 @@ export default function EditSubscriptionScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Método de pago</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.payment_method}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, payment_method: value }))
-                }
-                style={styles.picker}
+            {Platform.OS === 'ios' ? (
+              <TouchableOpacity
+                style={styles.iosPickerButton}
+                onPress={showPaymentMethodPicker}
               >
-                <Picker.Item label="Seleccionar..." value="" />
-                {PAYMENT_METHODS.map((method) => (
-                  <Picker.Item key={method} label={method} value={method} />
-                ))}
-              </Picker>
-            </View>
+                <Text style={styles.iosPickerText}>
+                  {formData.payment_method || 'Seleccionar...'}
+                </Text>
+                <Text style={styles.iosPickerArrow}>▼</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.payment_method}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, payment_method: value }))
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Seleccionar..." value="" />
+                  {PAYMENT_METHODS.map((method) => (
+                    <Picker.Item key={method} label={method} value={method} />
+                  ))}
+                </Picker>
+              </View>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Categoría</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.category}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, category: value }))
-                }
-                style={styles.picker}
+            {Platform.OS === 'ios' ? (
+              <TouchableOpacity
+                style={styles.iosPickerButton}
+                onPress={showCategoryPicker}
               >
-                <Picker.Item label="Seleccionar..." value="" />
-                {CATEGORIES.map((category) => (
-                  <Picker.Item
-                    key={category}
-                    label={category}
-                    value={category}
-                  />
-                ))}
-              </Picker>
-            </View>
+                <Text style={styles.iosPickerText}>
+                  {formData.category || 'Seleccionar...'}
+                </Text>
+                <Text style={styles.iosPickerArrow}>▼</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.category}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, category: value }))
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Seleccionar..." value="" />
+                  {CATEGORIES.map((category) => (
+                    <Picker.Item
+                      key={category}
+                      label={category}
+                      value={category}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -366,5 +491,25 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#ccc',
+  },
+  iosPickerButton: {
+    backgroundColor: '#f8f8f8',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  iosPickerText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  iosPickerArrow: {
+    fontSize: 12,
+    color: '#666',
   },
 });
